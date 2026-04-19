@@ -189,22 +189,22 @@
       height: var(--btn-height);
 
       background: linear-gradient(180deg,
-        #7a4800 0%,
-        #4a2a00 45%,
-        #2e1800 100%
+        #9a5c00 0%,
+        #5e3800 45%,
+        #3a2200 100%
       );
 
-      border: 2px solid #c07a0a;
+      border: 2px solid #e09418;
       border-radius: 2px;
 
       box-shadow:
-        0 0 0 1px #3a1e00,
-        0 0 14px rgba(180, 110, 8, 0.55),
-        inset 0 1px 0 rgba(255, 185, 50, 0.2),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.6),
-        inset 0 0 24px rgba(0, 0, 0, 0.35);
+        0 0 0 1px #4a2800,
+        0 0 16px rgba(220, 145, 20, 0.65),
+        inset 0 1px 0 rgba(255, 210, 80, 0.28),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+        inset 0 0 24px rgba(0, 0, 0, 0.25);
 
-      color: #f0c84a;
+      color: #ffe066;
       font-family: var(--font-family);
       font-size: var(--font-size-md);
       font-weight: 700;
@@ -247,15 +247,12 @@
        ============================================================ -->
   <div id="app">
 
-    <h1 id="app-title">Random Commander</h1>
-
     <div id="portrait-slot">
       <div id="portrait-placeholder-icon">&#9651;</div>
     </div>
 
     <div id="commander-info">
       <span id="commander-name" class="placeholder">Press button to pick</span>
-      <span id="commander-faction" hidden></span>
     </div>
 
     <button id="btn-randomize" type="button">Randomize</button>
