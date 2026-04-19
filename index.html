@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Random Commander</title>
 
-  <!-- ============================================================
-       STYLES
-       Uses CSS variables for easy re-theming (SC2 skin later).
-       ============================================================ -->
   <style>
     /* --- Design tokens --- */
     :root {
@@ -20,13 +16,11 @@
       --color-accent-hover: #81d4fa;
       --color-text-primary: #f0f0f0;
       --color-text-muted:   #888888;
-      --color-terran:       #4fc3f7;
-      --color-protoss:      #ffe082;
-      --color-zerg:         #a5d6a7;
 
       --font-family:  system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-mono:    "SF Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
       --font-size-xs: 0.75rem;
-      --font-size-sm: 0.9rem;
+      --font-size-sm: 0.875rem;
       --font-size-md: 1rem;
       --font-size-lg: 1.5rem;
       --font-size-xl: 2rem;
@@ -46,19 +40,10 @@
     }
 
     /* --- Reset --- */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     [hidden] { display: none !important; }
 
     /* --- Base --- */
-    html, body {
-      height: 100%;
-    }
-
     body {
       font-family: var(--font-family);
       background-color: var(--color-bg);
@@ -68,7 +53,7 @@
       align-items: center;
       justify-content: center;
       min-height: 100dvh;
-      padding: var(--space-lg) var(--space-md);
+      padding: var(--space-xl) var(--space-md) var(--space-2xl);
     }
 
     /* --- App shell --- */
@@ -79,16 +64,6 @@
       gap: var(--space-xl);
       width: 100%;
       max-width: 400px;
-    }
-
-    /* --- Header --- */
-    #app-title {
-      font-size: var(--font-size-lg);
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--color-accent);
-      text-align: center;
     }
 
     /* --- Portrait slot --- */
@@ -125,13 +100,9 @@
       font-size: 2.5rem;
     }
 
-    /* --- Commander info --- */
+    /* --- Commander name --- */
     #commander-info {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--space-sm);
-      min-height: 4.5rem;
+      min-height: 2.5rem;
       text-align: center;
     }
 
@@ -148,62 +119,29 @@
       color: var(--color-text-muted);
     }
 
-    #commander-faction {
-      font-size: var(--font-size-sm);
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    /* Faction colors */
-    #commander-faction[data-faction="Terran"]  { color: var(--color-terran);  }
-    #commander-faction[data-faction="Protoss"] { color: var(--color-protoss); }
-    #commander-faction[data-faction="Zerg"]    { color: var(--color-zerg);    }
-
-    /* --- Portrait slot lock-in flash --- */
+    /* --- Lock-in flash --- */
     @keyframes lock-in-flash {
       0%   { box-shadow: 0 0 0 3px var(--color-accent), 0 0 30px rgba(79,195,247,0.7); border-color: var(--color-accent); }
       40%  { box-shadow: 0 0 0 6px var(--color-accent), 0 0 60px rgba(79,195,247,0.9); border-color: var(--color-accent); }
       100% { box-shadow: none; border-color: var(--color-border); }
     }
 
-    #portrait-slot.lock-in {
-      animation: lock-in-flash 0.7s ease-out forwards;
-    }
+    #portrait-slot.lock-in  { animation: lock-in-flash 0.7s ease-out forwards; }
+    #portrait-slot.spinning img { filter: brightness(0.55); }
 
-    /* Dim portrait while spinning */
-    #portrait-slot.spinning img {
-      filter: brightness(0.55);
-    }
-
-    /* Button disabled state during spin */
-    #btn-randomize:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* --- Randomize button (SC2 gold style) --- */
+    /* --- Randomize button --- */
     #btn-randomize {
       width: 100%;
       height: var(--btn-height);
-
-      background: linear-gradient(180deg,
-        #9a5c00 0%,
-        #5e3800 45%,
-        #3a2200 100%
-      );
-
+      background: linear-gradient(180deg, #9a5c00 0%, #5e3800 45%, #3a2200 100%);
       border: 2px solid #e09418;
       border-radius: 2px;
-
       box-shadow:
         0 0 0 1px #4a2800,
         0 0 16px rgba(220, 145, 20, 0.65),
         inset 0 1px 0 rgba(255, 210, 80, 0.28),
         inset 0 -1px 0 rgba(0, 0, 0, 0.5),
         inset 0 0 24px rgba(0, 0, 0, 0.25);
-
       color: #ffe066;
       font-family: var(--font-family);
       font-size: var(--font-size-md);
@@ -211,18 +149,13 @@
       letter-spacing: 0.14em;
       text-transform: uppercase;
       text-shadow: 0 0 10px rgba(255, 200, 50, 0.65), 0 1px 3px rgba(0, 0, 0, 0.9);
-
       cursor: pointer;
       transition: box-shadow 0.15s ease, background 0.15s ease;
       -webkit-tap-highlight-color: transparent;
     }
 
     #btn-randomize:hover {
-      background: linear-gradient(180deg,
-        #9a5c00 0%,
-        #5e3600 45%,
-        #3c2200 100%
-      );
+      background: linear-gradient(180deg, #9a5c00 0%, #5e3600 45%, #3c2200 100%);
       box-shadow:
         0 0 0 1px #3a1e00,
         0 0 22px rgba(200, 130, 10, 0.75),
@@ -231,20 +164,64 @@
         inset 0 0 24px rgba(0, 0, 0, 0.25);
     }
 
-    #btn-randomize:active {
-      transform: scale(0.97);
-      box-shadow:
-        0 0 0 1px #3a1e00,
-        0 0 8px rgba(180, 110, 8, 0.4),
-        inset 0 2px 6px rgba(0, 0, 0, 0.6);
+    #btn-randomize:active  { transform: scale(0.97); }
+    #btn-randomize:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* --- Build order --- */
+    #build-order {
+      width: 100%;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      pointer-events: none;
+    }
+
+    #build-order.visible {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    #build-order-label {
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-sm);
+    }
+
+    #build-order-steps {
+      list-style: none;
+    }
+
+    .step {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-md);
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .step:last-child { border-bottom: none; }
+
+    .step-time {
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+      color: var(--color-accent);
+      min-width: 2.8rem;
+      flex-shrink: 0;
+    }
+
+    .step-action {
+      font-size: 1rem;
+      line-height: 1.45;
+      color: var(--color-text-primary);
     }
   </style>
 </head>
 <body>
 
-  <!-- ============================================================
-       MARKUP
-       ============================================================ -->
   <div id="app">
 
     <div id="portrait-slot">
@@ -257,59 +234,266 @@
 
     <button id="btn-randomize" type="button">Randomize</button>
 
+    <div id="build-order">
+      <p id="build-order-label">Opening — First 3 Minutes</p>
+      <ul id="build-order-steps"></ul>
+    </div>
+
   </div>
 
   <!-- ============================================================
        DATA
-       Add portrait URLs to the portrait field when available.
+       buildOrders is an array to support multiple strategies later.
+       The UI currently renders buildOrders[0].
        ============================================================ -->
   <script>
     const commanders = [
-      { name: "Raynor",       faction: "Terran",  portrait: "portraits/raynor.png" },
-      { name: "Artanis",      faction: "Protoss", portrait: "portraits/artanis.png" },
-      { name: "Zagara",       faction: "Zerg",    portrait: "portraits/zagara.png" },
-      { name: "Vorazun",      faction: "Protoss", portrait: "portraits/vorazun.png" },
-      { name: "Abathur",      faction: "Zerg",    portrait: "portraits/abathur.png" },
-      { name: "Alarak",       faction: "Protoss", portrait: "portraits/alarak.png" },
-      { name: "Nova",         faction: "Terran",  portrait: "portraits/nova.png" },
-      { name: "Stukov",       faction: "Terran",  portrait: "portraits/stukov.png" },
-      { name: "Dehaka",       faction: "Zerg",    portrait: "portraits/dehaka.png" },
-      { name: "Han & Horner", faction: "Terran",  portrait: "portraits/han_horner.png" },
-      { name: "Tychus",       faction: "Terran",  portrait: "portraits/tychus.png" },
-      { name: "Zeratul",      faction: "Protoss", portrait: "portraits/zeratul.jpg" },
-      { name: "Mengsk",       faction: "Terran",  portrait: "portraits/mengsk.png" },
+      {
+        name: "Raynor", faction: "Terran", portrait: "portraits/raynor.png",
+        buildOrders: [{
+          name: "Standard Bio",
+          steps: [
+            { time: "0:00", action: "SCV — keep constant production all game" },
+            { time: "0:17", action: "Supply Depot" },
+            { time: "0:40", action: "Barracks" },
+            { time: "1:05", action: "Refinery × 2" },
+            { time: "1:20", action: "Orbital Command" },
+            { time: "1:35", action: "Marines begin" },
+            { time: "2:00", action: "Barracks × 2 + Supply Depots as needed" },
+            { time: "2:30", action: "Stim Pack research" },
+            { time: "2:50", action: "Medics — add to production" },
+          ]
+        }]
+      },
+      {
+        name: "Artanis", faction: "Protoss", portrait: "portraits/artanis.png",
+        buildOrders: [{
+          name: "Gateway Aggression",
+          steps: [
+            { time: "0:00", action: "Probe — constant production" },
+            { time: "0:14", action: "Pylon (9 supply)" },
+            { time: "0:42", action: "Gateway" },
+            { time: "1:00", action: "Assimilator × 2" },
+            { time: "1:15", action: "Cybernetics Core" },
+            { time: "1:45", action: "Warp Gate research — Chrono Surge it" },
+            { time: "2:00", action: "Gateway × 2" },
+            { time: "2:20", action: "Stalkers × 2 (first warp-in)" },
+            { time: "2:45", action: "Robotics Facility for Immortals" },
+          ]
+        }]
+      },
+      {
+        name: "Zagara", faction: "Zerg", portrait: "portraits/zagara.png",
+        buildOrders: [{
+          name: "Zergling / Baneling Flood",
+          steps: [
+            { time: "0:00", action: "Drone — constant production" },
+            { time: "0:12", action: "Overlord (10 supply)" },
+            { time: "0:22", action: "Spawning Pool" },
+            { time: "0:42", action: "Extractor × 2" },
+            { time: "1:00", action: "Queen" },
+            { time: "1:10", action: "Baneling Nest" },
+            { time: "1:30", action: "Zerglings — flood begins" },
+            { time: "2:00", action: "Roach Warren" },
+            { time: "2:30", action: "Roach production" },
+          ]
+        }]
+      },
+      {
+        name: "Vorazun", faction: "Protoss", portrait: "portraits/vorazun.png",
+        buildOrders: [{
+          name: "Cloaked Harassment",
+          steps: [
+            { time: "0:00", action: "Probe — constant production" },
+            { time: "0:14", action: "Pylon" },
+            { time: "0:42", action: "Gateway" },
+            { time: "1:00", action: "Assimilator × 2" },
+            { time: "1:15", action: "Cybernetics Core" },
+            { time: "1:40", action: "Dark Shrine" },
+            { time: "2:00", action: "Stalker × 1 for escort" },
+            { time: "2:30", action: "Dark Templar production begins" },
+            { time: "2:50", action: "Time Stop — save for key moments" },
+          ]
+        }]
+      },
+      {
+        name: "Abathur", faction: "Zerg", portrait: "portraits/abathur.png",
+        buildOrders: [{
+          name: "Symbiote + Swarm",
+          steps: [
+            { time: "0:00", action: "Drone — constant production" },
+            { time: "0:12", action: "Overlord" },
+            { time: "0:22", action: "Spawning Pool" },
+            { time: "0:42", action: "Extractor × 2" },
+            { time: "0:50", action: "Symbiote on ally's strongest unit — do this immediately" },
+            { time: "1:05", action: "Queen + Roach Warren" },
+            { time: "1:40", action: "Roaches begin" },
+            { time: "2:00", action: "Evolution Chamber" },
+            { time: "2:30", action: "Swarm Hosts for Locusts" },
+          ]
+        }]
+      },
+      {
+        name: "Alarak", faction: "Protoss", portrait: "portraits/alarak.png",
+        buildOrders: [{
+          name: "Ascendant Push",
+          steps: [
+            { time: "0:00", action: "Probe — constant production" },
+            { time: "0:14", action: "Pylon" },
+            { time: "0:42", action: "Gateway × 2" },
+            { time: "1:00", action: "Assimilator × 2" },
+            { time: "1:15", action: "Cybernetics Core" },
+            { time: "1:40", action: "Twilight Council" },
+            { time: "2:00", action: "Supplicants — sacrifice to charge Alarak" },
+            { time: "2:15", action: "Ascendant production" },
+            { time: "2:45", action: "Slayer production" },
+          ]
+        }]
+      },
+      {
+        name: "Nova", faction: "Terran", portrait: "portraits/nova.png",
+        buildOrders: [{
+          name: "Covert Ops",
+          steps: [
+            { time: "0:00", action: "SCV — constant production" },
+            { time: "0:17", action: "Supply Depot" },
+            { time: "0:40", action: "Barracks + Refinery × 2" },
+            { time: "1:15", action: "Ghost Academy" },
+            { time: "1:30", action: "Factory" },
+            { time: "1:50", action: "Nova: personal Nuke ability ready — use freely" },
+            { time: "2:05", action: "Marines begin from Barracks" },
+            { time: "2:20", action: "Tech Lab on Barracks" },
+            { time: "2:45", action: "Goliaths from Factory" },
+          ]
+        }]
+      },
+      {
+        name: "Stukov", faction: "Terran", portrait: "portraits/stukov.png",
+        buildOrders: [{
+          name: "Infested Flood",
+          steps: [
+            { time: "0:00", action: "SCV — constant production" },
+            { time: "0:17", action: "Supply Depot" },
+            { time: "0:40", action: "Barracks" },
+            { time: "1:00", action: "Refinery × 2" },
+            { time: "1:15", action: "Infested Barracks (upgrade CC building)" },
+            { time: "1:30", action: "Infested Bunkers — place near enemy choke" },
+            { time: "1:50", action: "Factory → Infested Factory" },
+            { time: "2:15", action: "Infested Marines flood" },
+            { time: "2:45", action: "Infested Siege Tanks" },
+          ]
+        }]
+      },
+      {
+        name: "Dehaka", faction: "Zerg", portrait: "portraits/dehaka.png",
+        buildOrders: [{
+          name: "Primal Pack",
+          steps: [
+            { time: "0:00", action: "Drone — constant production" },
+            { time: "0:12", action: "Overlord" },
+            { time: "0:22", action: "Spawning Pool" },
+            { time: "0:42", action: "Extractor × 2" },
+            { time: "1:00", action: "Queen" },
+            { time: "1:20", action: "Dehaka: push early, collect essence from kills" },
+            { time: "1:30", action: "Roach Warren" },
+            { time: "2:00", action: "Roach production" },
+            { time: "2:30", action: "Primal Wurm — use for fast repositioning" },
+          ]
+        }]
+      },
+      {
+        name: "Han & Horner", faction: "Terran", portrait: "portraits/han_horner.png",
+        buildOrders: [{
+          name: "Mech + Air",
+          steps: [
+            { time: "0:00", action: "SCV — constant production" },
+            { time: "0:17", action: "Supply Depot" },
+            { time: "0:40", action: "Barracks (for Reactor)" },
+            { time: "1:00", action: "Refinery × 2" },
+            { time: "1:15", action: "Factory" },
+            { time: "1:30", action: "Reactor on Barracks → lift and place Starport" },
+            { time: "1:50", action: "Orbital Command" },
+            { time: "2:10", action: "Vikings begin (Starport + Reactor)" },
+            { time: "2:35", action: "Hercules / Herc from Factory" },
+          ]
+        }]
+      },
+      {
+        name: "Tychus", faction: "Terran", portrait: "portraits/tychus.png",
+        buildOrders: [{
+          name: "Outlaw Squad",
+          steps: [
+            { time: "0:00", action: "SCV — constant production" },
+            { time: "0:17", action: "Supply Depot" },
+            { time: "0:40", action: "Barracks + Refinery × 2" },
+            { time: "1:10", action: "Recruit 2nd Outlaw — Sirius or Vega recommended" },
+            { time: "1:30", action: "Cantina (Tychus healing + abilities)" },
+            { time: "1:50", action: "Orbital Command" },
+            { time: "2:00", action: "Recruit 3rd Outlaw" },
+            { time: "2:25", action: "Engage first objective — Outlaws are strong early" },
+            { time: "2:50", action: "Odin call-down if researched" },
+          ]
+        }]
+      },
+      {
+        name: "Zeratul", faction: "Protoss", portrait: "portraits/zeratul.jpg",
+        buildOrders: [{
+          name: "Artifact Hunt",
+          steps: [
+            { time: "0:00", action: "Probe — constant production" },
+            { time: "0:14", action: "Pylon" },
+            { time: "0:42", action: "Gateway" },
+            { time: "1:00", action: "Assimilator × 2" },
+            { time: "1:15", action: "Cybernetics Core" },
+            { time: "1:30", action: "Scout map — locate nearest artifact fragment" },
+            { time: "1:45", action: "Warp Gate research" },
+            { time: "2:00", action: "Phase Smith: activate Spear of Adun ability" },
+            { time: "2:20", action: "Stalkers × 2 (first warp-in) + collect fragment" },
+          ]
+        }]
+      },
+      {
+        name: "Mengsk", faction: "Terran", portrait: "portraits/mengsk.png",
+        buildOrders: [{
+          name: "Imperial Guard",
+          steps: [
+            { time: "0:00", action: "SCV — constant production" },
+            { time: "0:17", action: "Supply Depot" },
+            { time: "0:40", action: "Barracks → Tech Lab" },
+            { time: "1:00", action: "Refinery × 2" },
+            { time: "1:20", action: "Orbital Command" },
+            { time: "1:35", action: "Dominion Troopers + Medics begin" },
+            { time: "1:50", action: "Emperor's Shadow — call down Mengsk hero" },
+            { time: "2:15", action: "Factory + 2nd Barracks" },
+            { time: "2:45", action: "Imperial Mandate abilities — Inspire, Pulsar Rounds" },
+          ]
+        }]
+      },
     ];
   </script>
 
   <!-- ============================================================
        LOGIC
-       Stateless render() driven by a minimal state object.
        ============================================================ -->
   <script>
-    // --- State ---
-    const state = {
-      current: null,  // index into commanders[], or null before first pick
-    };
+    const state = { current: null };
 
-    // --- DOM refs ---
-    const elPortraitSlot = document.getElementById("portrait-slot");
-    const elPlaceholder  = document.getElementById("portrait-placeholder-icon");
-    const elName         = document.getElementById("commander-name");
-    const elFaction      = document.getElementById("commander-faction");
-    const elBtn          = document.getElementById("btn-randomize");
+    // DOM refs
+    const elPortraitSlot  = document.getElementById("portrait-slot");
+    const elPlaceholder   = document.getElementById("portrait-placeholder-icon");
+    const elName          = document.getElementById("commander-name");
+    const elBtn           = document.getElementById("btn-randomize");
+    const elBuildOrder    = document.getElementById("build-order");
+    const elBuildSteps    = document.getElementById("build-order-steps");
 
-    // --- Render ---
+    // --- Render portrait + name ---
     function render(commander) {
       if (!commander) {
-        // Reset / initial state
         elPlaceholder.hidden = false;
         const img = elPortraitSlot.querySelector("img");
         if (img) img.remove();
-
         elName.textContent = "Press button to pick";
         elName.className = "placeholder";
-        elFaction.hidden = true;
-        elFaction.textContent = "";
         return;
       }
 
@@ -333,72 +517,79 @@
       // Name
       elName.textContent = commander.name;
       elName.className = "";
+    }
 
-      // Faction
-      elFaction.textContent = commander.faction;
-      elFaction.setAttribute("data-faction", commander.faction);
-      elFaction.hidden = false;
+    // --- Build order ---
+    function showBuildOrder(commander) {
+      const build = commander.buildOrders?.[0];
+      if (!build) return;
+      elBuildSteps.innerHTML = "";
+      build.steps.forEach(step => {
+        const li = document.createElement("li");
+        li.className = "step";
+        li.innerHTML = `<span class="step-time">${step.time}</span><span class="step-action">${step.action}</span>`;
+        elBuildSteps.appendChild(li);
+      });
+      elBuildOrder.classList.add("visible");
+    }
+
+    function hideBuildOrder() {
+      elBuildOrder.classList.remove("visible");
     }
 
     // --- Pick logic ---
     function pickRandom() {
-      // Choose final result upfront
       let finalIndex;
       do {
         finalIndex = Math.floor(Math.random() * commanders.length);
       } while (finalIndex === state.current && commanders.length > 1);
 
       elBtn.disabled = true;
-      elPortraitSlot.classList.add('spinning');
-      elPortraitSlot.classList.remove('lock-in');
+      hideBuildOrder();
+      elPortraitSlot.classList.add("spinning");
+      elPortraitSlot.classList.remove("lock-in");
 
-      // Slot-machine: cycle fast → slow over ~2s, then lock in
-      const TOTAL_MS   = 2000;
+      const TOTAL_MS       = 2000;
       const INTERVAL_START = 55;
       const INTERVAL_END   = 280;
-
-      let elapsed = 0;
+      let elapsed  = 0;
       let interval = INTERVAL_START;
 
       function tick() {
-        // Show a random commander (exclude final until the very end)
         let tempIndex;
-        do {
-          tempIndex = Math.floor(Math.random() * commanders.length);
-        } while (tempIndex === finalIndex);
+        do { tempIndex = Math.floor(Math.random() * commanders.length); }
+        while (tempIndex === finalIndex);
         render(commanders[tempIndex]);
 
         elapsed += interval;
-
-        // Ease out: quadratic ramp from fast to slow
         const t = Math.min(elapsed / TOTAL_MS, 1);
         interval = INTERVAL_START + (INTERVAL_END - INTERVAL_START) * (t * t);
 
         if (elapsed < TOTAL_MS) {
           setTimeout(tick, interval);
         } else {
-          // Lock in
           state.current = finalIndex;
-          elPortraitSlot.classList.remove('spinning');
+          elPortraitSlot.classList.remove("spinning");
           render(commanders[finalIndex]);
-          elPortraitSlot.classList.add('lock-in');
+          elPortraitSlot.classList.add("lock-in");
           elBtn.disabled = false;
+          // Build order fades in after the lock-in flash settles
+          setTimeout(() => showBuildOrder(commanders[finalIndex]), 500);
         }
       }
 
       tick();
     }
 
-    // --- Wire up ---
+    // Wire up
     elBtn.addEventListener("click", pickRandom);
-    document.addEventListener("keydown", (e) => {
+    document.addEventListener("keydown", e => {
       if (e.code === "Space" && !elBtn.disabled) {
         e.preventDefault();
         pickRandom();
       }
     });
 
-    // --- Init ---
     render(null);
   </script>
 
