@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Random Commander</title>
+
+  <!-- ============================================================
+       STYLES
+       Uses CSS variables for easy re-theming (SC2 skin later).
+       ============================================================ -->
+  <style>
+    /* --- Design tokens --- */
+    :root {
+      --color-bg:           #0d0d0d;
+      --color-surface:      #1a1a1a;
+      --color-surface-alt:  #242424;
+      --color-border:       #333333;
+      --color-accent:       #4fc3f7;
+      --color-accent-hover: #81d4fa;
+      --color-text-primary: #f0f0f0;
+      --color-text-muted:   #888888;
+      --color-terran:       #4fc3f7;
+      --color-protoss:      #ffe082;
+      --color-zerg:         #a5d6a7;
+
+      --font-family:  system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.9rem;
+      --font-size-md: 1rem;
+      --font-size-lg: 1.5rem;
+      --font-size-xl: 2rem;
+
+      --space-xs:  0.25rem;
+      --space-sm:  0.5rem;
+      --space-md:  1rem;
+      --space-lg:  1.5rem;
+      --space-xl:  2rem;
+      --space-2xl: 3rem;
+
+      --portrait-size: 220px;
+      --btn-height:    56px;
+      --radius-sm:     6px;
+      --radius-md:     12px;
+      --radius-lg:     20px;
+    }
+
+    /* --- Reset --- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    [hidden] { display: none !important; }
+
+    /* --- Base --- */
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--color-bg);
+      color: var(--color-text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: var(--space-lg) var(--space-md);
+    }
+
+    /* --- App shell --- */
+    #app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-xl);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    /* --- Header --- */
+    #app-title {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      text-align: center;
+    }
+
+    /* --- Portrait slot --- */
+    #portrait-slot {
+      width: var(--portrait-size);
+      height: var(--portrait-size);
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-md);
+      background-color: var(--color-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    #portrait-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: var(--radius-md);
+    }
+
+    #portrait-placeholder-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-color: var(--color-surface-alt);
+      border: 2px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-border);
+      font-size: 2.5rem;
+    }
+
+    /* --- Commander info --- */
+    #commander-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-sm);
+      min-height: 4.5rem;
+      text-align: center;
+    }
+
+    #commander-name {
+      font-size: var(--font-size-xl);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+    }
+
+    #commander-name.placeholder {
+      font-size: var(--font-size-md);
+      font-weight: 400;
+      color: var(--color-text-muted);
+    }
+
+    #commander-faction {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* Faction colors */
+    #commander-faction[data-faction="Terran"]  { color: var(--color-terran);  }
+    #commander-faction[data-faction="Protoss"] { color: var(--color-protoss); }
+    #commander-faction[data-faction="Zerg"]    { color: var(--color-zerg);    }
+
+    /* --- Portrait slot lock-in flash --- */
+    @keyframes lock-in-flash {
+      0%   { box-shadow: 0 0 0 3px var(--color-accent), 0 0 30px rgba(79,195,247,0.7); border-color: var(--color-accent); }
+      40%  { box-shadow: 0 0 0 6px var(--color-accent), 0 0 60px rgba(79,195,247,0.9); border-color: var(--color-accent); }
+      100% { box-shadow: none; border-color: var(--color-border); }
+    }
+
+    #portrait-slot.lock-in {
+      animation: lock-in-flash 0.7s ease-out forwards;
+    }
+
+    /* Dim portrait while spinning */
+    #portrait-slot.spinning img {
+      filter: brightness(0.55);
+    }
+
+    /* Button disabled state during spin */
+    #btn-randomize:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* --- Randomize button (SC2 gold style) --- */
+    #btn-randomize {
+      width: 100%;
+      height: var(--btn-height);
+
+      background: linear-gradient(180deg,
+        #7a4800 0%,
+        #4a2a00 45%,
+        #2e1800 100%
+      );
+
+      border: 2px solid #c07a0a;
+      border-radius: 2px;
+
+      box-shadow:
+        0 0 0 1px #3a1e00,
+        0 0 14px rgba(180, 110, 8, 0.55),
+        inset 0 1px 0 rgba(255, 185, 50, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+        inset 0 0 24px rgba(0, 0, 0, 0.35);
+
+      color: #f0c84a;
+      font-family: var(--font-family);
+      font-size: var(--font-size-md);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(255, 200, 50, 0.65), 0 1px 3px rgba(0, 0, 0, 0.9);
+
+      cursor: pointer;
+      transition: box-shadow 0.15s ease, background 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #btn-randomize:hover {
+      background: linear-gradient(180deg,
+        #9a5c00 0%,
+        #5e3600 45%,
+        #3c2200 100%
+      );
+      box-shadow:
+        0 0 0 1px #3a1e00,
+        0 0 22px rgba(200, 130, 10, 0.75),
+        inset 0 1px 0 rgba(255, 200, 60, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+        inset 0 0 24px rgba(0, 0, 0, 0.25);
+    }
+
+    #btn-randomize:active {
+      transform: scale(0.97);
+      box-shadow:
+        0 0 0 1px #3a1e00,
+        0 0 8px rgba(180, 110, 8, 0.4),
+        inset 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       MARKUP
+       ============================================================ -->
+  <div id="app">
+
+    <h1 id="app-title">Random Commander</h1>
+
+    <div id="portrait-slot">
+      <div id="portrait-placeholder-icon">&#9651;</div>
+    </div>
+
+    <div id="commander-info">
+      <span id="commander-name" class="placeholder">Press button to pick</span>
+      <span id="commander-faction" hidden></span>
+    </div>
+
+    <button id="btn-randomize" type="button">Randomize</button>
+
+  </div>
+
+  <!-- ============================================================
+       DATA
+       Add portrait URLs to the portrait field when available.
+       ============================================================ -->
+  <script>
+    const commanders = [
+      { name: "Raynor",       faction: "Terran",  portrait: "portraits/raynor.png" },
+      { name: "Artanis",      faction: "Protoss", portrait: "portraits/artanis.png" },
+      { name: "Zagara",       faction: "Zerg",    portrait: "portraits/zagara.png" },
+      { name: "Vorazun",      faction: "Protoss", portrait: "portraits/vorazun.png" },
+      { name: "Abathur",      faction: "Zerg",    portrait: "portraits/abathur.png" },
+      { name: "Alarak",       faction: "Protoss", portrait: "portraits/alarak.png" },
+      { name: "Nova",         faction: "Terran",  portrait: "portraits/nova.png" },
+      { name: "Stukov",       faction: "Terran",  portrait: "portraits/stukov.png" },
+      { name: "Dehaka",       faction: "Zerg",    portrait: "portraits/dehaka.png" },
+      { name: "Han & Horner", faction: "Terran",  portrait: "portraits/han_horner.png" },
+      { name: "Tychus",       faction: "Terran",  portrait: "portraits/tychus.png" },
+      { name: "Zeratul",      faction: "Protoss", portrait: "portraits/zeratul.jpg" },
+      { name: "Mengsk",       faction: "Terran",  portrait: "portraits/mengsk.png" },
+    ];
+  </script>
+
+  <!-- ============================================================
+       LOGIC
+       Stateless render() driven by a minimal state object.
+       ============================================================ -->
+  <script>
+    // --- State ---
+    const state = {
+      current: null,  // index into commanders[], or null before first pick
+    };
+
+    // --- DOM refs ---
+    const elPortraitSlot = document.getElementById("portrait-slot");
+    const elPlaceholder  = document.getElementById("portrait-placeholder-icon");
+    const elName         = document.getElementById("commander-name");
+    const elFaction      = document.getElementById("commander-faction");
+    const elBtn          = document.getElementById("btn-randomize");
+
+    // --- Render ---
+    function render(commander) {
+      if (!commander) {
+        // Reset / initial state
+        elPlaceholder.hidden = false;
+        const img = elPortraitSlot.querySelector("img");
+        if (img) img.remove();
+
+        elName.textContent = "Press button to pick";
+        elName.className = "placeholder";
+        elFaction.hidden = true;
+        elFaction.textContent = "";
+        return;
+      }
+
+      // Portrait
+      elPlaceholder.hidden = !!commander.portrait;
+      const existingImg = elPortraitSlot.querySelector("img");
+      if (commander.portrait) {
+        if (existingImg) {
+          existingImg.src = commander.portrait;
+          existingImg.alt = commander.name;
+        } else {
+          const img = document.createElement("img");
+          img.src = commander.portrait;
+          img.alt = commander.name;
+          elPortraitSlot.appendChild(img);
+        }
+      } else if (existingImg) {
+        existingImg.remove();
+      }
+
+      // Name
+      elName.textContent = commander.name;
+      elName.className = "";
+
+      // Faction
+      elFaction.textContent = commander.faction;
+      elFaction.setAttribute("data-faction", commander.faction);
+      elFaction.hidden = false;
+    }
+
+    // --- Pick logic ---
+    function pickRandom() {
+      // Choose final result upfront
+      let finalIndex;
+      do {
+        finalIndex = Math.floor(Math.random() * commanders.length);
+      } while (finalIndex === state.current && commanders.length > 1);
+
+      elBtn.disabled = true;
+      elPortraitSlot.classList.add('spinning');
+      elPortraitSlot.classList.remove('lock-in');
+
+      // Slot-machine: cycle fast → slow over ~2s, then lock in
+      const TOTAL_MS   = 2000;
+      const INTERVAL_START = 55;
+      const INTERVAL_END   = 280;
+
+      let elapsed = 0;
+      let interval = INTERVAL_START;
+
+      function tick() {
+        // Show a random commander (exclude final until the very end)
+        let tempIndex;
+        do {
+          tempIndex = Math.floor(Math.random() * commanders.length);
+        } while (tempIndex === finalIndex);
+        render(commanders[tempIndex]);
+
+        elapsed += interval;
+
+        // Ease out: quadratic ramp from fast to slow
+        const t = Math.min(elapsed / TOTAL_MS, 1);
+        interval = INTERVAL_START + (INTERVAL_END - INTERVAL_START) * (t * t);
+
+        if (elapsed < TOTAL_MS) {
+          setTimeout(tick, interval);
+        } else {
+          // Lock in
+          state.current = finalIndex;
+          elPortraitSlot.classList.remove('spinning');
+          render(commanders[finalIndex]);
+          elPortraitSlot.classList.add('lock-in');
+          elBtn.disabled = false;
+        }
+      }
+
+      tick();
+    }
+
+    // --- Wire up ---
+    elBtn.addEventListener("click", pickRandom);
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !elBtn.disabled) {
+        e.preventDefault();
+        pickRandom();
+      }
+    });
+
+    // --- Init ---
+    render(null);
+  </script>
+
+</body>
+</html>
