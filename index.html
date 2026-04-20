@@ -53,7 +53,12 @@
       align-items: center;
       justify-content: center;
       min-height: 100dvh;
-      padding: var(--space-xl) var(--space-md) var(--space-2xl);
+      padding: var(--space-xl) var(--space-md);
+    }
+
+    body.has-result {
+      justify-content: flex-start;
+      padding-top: var(--space-xl);
     }
 
     /* --- App shell --- */
@@ -64,6 +69,27 @@
       gap: var(--space-xl);
       width: 100%;
       max-width: 400px;
+      transition: gap 0.3s ease;
+    }
+
+    #app.has-result {
+      gap: var(--space-sm);
+    }
+
+    /* --- Commander header (portrait + name row) --- */
+    #commander-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-md);
+      width: 100%;
+      transition: gap 0.3s ease;
+    }
+
+    #app.has-result #commander-header {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-md);
     }
 
     /* --- Portrait slot --- */
@@ -78,13 +104,20 @@
       justify-content: center;
       overflow: hidden;
       flex-shrink: 0;
+      transition: width 0.35s ease, height 0.35s ease, border-radius 0.35s ease;
+    }
+
+    #app.has-result #portrait-slot {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-sm);
     }
 
     #portrait-slot img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: var(--radius-md);
+      border-radius: inherit;
     }
 
     #portrait-placeholder-icon {
@@ -104,6 +137,15 @@
     #commander-info {
       min-height: 2.5rem;
       text-align: center;
+      flex: 1;
+    }
+
+    #app.has-result #commander-info {
+      text-align: left;
+    }
+
+    #app.has-result #commander-name {
+      font-size: var(--font-size-lg);
     }
 
     #commander-name {
@@ -167,6 +209,12 @@
     #btn-randomize:active  { transform: scale(0.97); }
     #btn-randomize:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+    #app.has-result #btn-randomize {
+      height: 40px;
+      font-size: var(--font-size-sm);
+      letter-spacing: 0.12em;
+    }
+
     /* --- Build order --- */
     #build-order {
       width: 100%;
@@ -198,8 +246,8 @@
     .step {
       display: flex;
       align-items: baseline;
-      gap: var(--space-md);
-      padding: 0.6rem 0;
+      gap: var(--space-sm);
+      padding: 0.4rem 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
@@ -214,8 +262,8 @@
     }
 
     .step-action {
-      font-size: 1rem;
-      line-height: 1.45;
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
       color: var(--color-text-primary);
     }
   </style>
@@ -224,18 +272,20 @@
 
   <div id="app">
 
-    <div id="portrait-slot">
-      <div id="portrait-placeholder-icon">&#9651;</div>
-    </div>
+    <div id="commander-header">
+      <div id="portrait-slot">
+        <div id="portrait-placeholder-icon">&#9651;</div>
+      </div>
 
-    <div id="commander-info">
-      <span id="commander-name" class="placeholder">Press button to pick</span>
+      <div id="commander-info">
+        <span id="commander-name" class="placeholder">Press button to pick</span>
+      </div>
     </div>
 
     <button id="btn-randomize" type="button">Randomize</button>
 
     <div id="build-order">
-      <p id="build-order-label">Opening — First 3 Minutes</p>
+      <p id="build-order-label">Opening Build  <span style="font-weight:400;letter-spacing:0">(@N = at N supply)</span></p>
       <ul id="build-order-steps"></ul>
     </div>
 
@@ -253,134 +303,242 @@
         buildOrders: [{
           name: "Standard Bio",
           steps: [
-            { time: "0:00", action: "SCV — keep constant production all game" },
-            { time: "0:17", action: "Supply Depot" },
-            { time: "0:40", action: "Barracks" },
-            { time: "1:05", action: "Refinery × 2" },
-            { time: "1:20", action: "Orbital Command" },
-            { time: "1:35", action: "Marines begin" },
-            { time: "2:00", action: "Barracks × 2 + Supply Depots as needed" },
-            { time: "2:30", action: "Stim Pack research" },
-            { time: "2:50", action: "Medics — add to production" },
+            { time: "0:03",  action: "SCV (continuous from Command Center)" },
+            { time: "0:25",  action: "Supply Depot (@13 supply)" },
+            { time: "1:20",  action: "Command Center (@16) — land next to expansion rocks" },
+            { time: "1:39",  action: "Barracks (@17)" },
+            { time: "2:19",  action: "Orbital Command — upgrade 1st CC (@19)" },
+            { time: "2:44",  action: "Command Center at expansion rocks (@19)" },
+            { time: "3:03",  action: "Orbital Command — upgrade 2nd CC (@20)" },
+            { time: "3:16",  action: "Refinery (@20)" },
+            { time: "3:22",  action: "Refinery (@21)" },
+            { time: "3:53",  action: "3rd Command Center + Orbital (@23)" },
+            { time: "4:14",  action: "Barracks Tech Lab — for Marauders (@24)" },
+            { time: "4:36",  action: "4th Orbital Command — drop MULEs constantly (@27)" },
+            { time: "4:49",  action: "Engineering Bay × 2 — start Weapons + Armor upgrades" },
+            { time: "5:01",  action: "Barracks × 2 — scale up Marine/Marauder production" },
+            { time: "5:22",  action: "Barracks × 2 more (total 5 Barracks)" },
+            { time: "5:30",  action: "Weapons Lvl 1 + Armor Lvl 1 — research immediately" },
+            { time: "5:48",  action: "Barracks Reactors × 2 (double Marine production)" },
+            { time: "6:00",  action: "Marines begin flowing — fill army" },
+            { time: "6:16",  action: "Combat Shields — extra Marine HP" },
+            { time: "6:29",  action: "2nd expansion Refineries × 2" },
+            { time: "6:40",  action: "Factory (required for Armory) + more Barracks Tech Labs" },
+            { time: "7:07",  action: "Stabilizer Medpacks (Medic upgrade) — huge sustain bonus" },
+            { time: "7:54",  action: "Armory + Supply Depots × 3 — enables Weapons/Armor Lvl 2+" },
+            { time: "—",     action: "MULE: call from every Orbital every 50s — massive mineral income" },
+            { time: "—",     action: "Army: Marines (bulk) + Marauders (tanks) + Medics (healing)" },
+            { time: "—",     action: "4 Orbitals ideal for 20-min mission; scale with mission length" },
           ]
         }]
       },
       {
         name: "Artanis", faction: "Protoss", portrait: "portraits/artanis.png",
         buildOrders: [{
-          name: "Gateway Aggression",
+          name: "Guardian Shell / Zealot–Archon",
           steps: [
-            { time: "0:00", action: "Probe — constant production" },
-            { time: "0:14", action: "Pylon (9 supply)" },
-            { time: "0:42", action: "Gateway" },
-            { time: "1:00", action: "Assimilator × 2" },
-            { time: "1:15", action: "Cybernetics Core" },
-            { time: "1:45", action: "Warp Gate research — Chrono Surge it" },
-            { time: "2:00", action: "Gateway × 2" },
-            { time: "2:20", action: "Stalkers × 2 (first warp-in)" },
-            { time: "2:45", action: "Robotics Facility for Immortals" },
+            { time: "0:00",  action: "Project Power Field (top bar) — instant supply + power at base" },
+            { time: "0:03",  action: "Probe (Chrono Boost Nexus for worker speed)" },
+            { time: "@15",   action: "Gateway — build directly on Power Field, no Pylon needed yet" },
+            { time: "@17",   action: "Assimilator × 2" },
+            { time: "—",     action: "Chrono Boost Gateway continuously" },
+            { time: "@21",   action: "Zealot × 1 → clear expansion rocks" },
+            { time: "@24",   action: "Zealot × 1 more if needed for rocks" },
+            { time: "—",     action: "Chrono Boost Nexus — worker production" },
+            { time: "@31",   action: "Nexus expansion" },
+            { time: "@33",   action: "Cybernetics Core" },
+            { time: "@34",   action: "Pylon" },
+            { time: "—",     action: "Warp Gate research — Chrono Boost it" },
+            { time: "—",     action: "Twilight Council → Charge (Zealot speed) + Blink (Stalker)" },
+            { time: "—",     action: "Forge → Ground Weapons/Armor upgrades (Artanis has +1 by default)" },
+            { time: "—",     action: "Templar Archives → Storm for High Templar/Archon transition" },
+            { time: "—",     action: "Army: Zealots + Stalkers → merge into Archons at max energy" },
+            { time: "—",     action: "Guardian Shell (passive): units revive once on death — never retreat" },
           ]
         }]
       },
       {
         name: "Zagara", faction: "Zerg", portrait: "portraits/zagara.png",
         buildOrders: [{
-          name: "Zergling / Baneling Flood",
+          name: "Baneling / Scourge Flood",
           steps: [
-            { time: "0:00", action: "Drone — constant production" },
-            { time: "0:12", action: "Overlord (10 supply)" },
-            { time: "0:22", action: "Spawning Pool" },
-            { time: "0:42", action: "Extractor × 2" },
-            { time: "1:00", action: "Queen" },
-            { time: "1:10", action: "Baneling Nest" },
-            { time: "1:30", action: "Zerglings — flood begins" },
-            { time: "2:00", action: "Roach Warren" },
-            { time: "2:30", action: "Roach production" },
+            { time: "0:10",  action: "Drone × 2 (Zagara's drones cost 0.5 supply — shown as in-game supply)" },
+            { time: "0:27",  action: "Drone × 2" },
+            { time: "0:32",  action: "Extractor (@9)" },
+            { time: "0:40",  action: "Drone × 2" },
+            { time: "1:13",  action: "Spawning Pool (@10)" },
+            { time: "1:25",  action: "2nd Extractor (@10)" },
+            { time: "1:45",  action: "Baneling Nest (@10)" },
+            { time: "1:46",  action: "Swarmlings × 6 → clear expansion rocks" },
+            { time: "2:03",  action: "Overlord (@13)" },
+            { time: "3:03",  action: "Hatchery at expansion (@17)" },
+            { time: "3:28",  action: "Overlord (@18)" },
+            { time: "3:30",  action: "Evolution Chamber (@20)" },
+            { time: "4:00",  action: "Centrifugal Hooks (Baneling speed upgrade) (@24)" },
+            { time: "4:08",  action: "Lair (@24) — enables Scourge and advanced upgrades" },
+            { time: "4:18",  action: "Heroic Fortitude (Zagara HP upgrade)" },
+            { time: "4:27",  action: "Metabolic Boost (Zergling speed)" },
+            { time: "—",     action: "Scourge Nest → Scourge for air; Aberration Den for heavies" },
+            { time: "—",     action: "Creep Tumors from Queens — spread creep for movement speed" },
+            { time: "—",     action: "Build 4+ Hatcheries for larva income — keep spending larvae" },
+            { time: "—",     action: "Army: Banelings (ground splash) + Scourge (air) + Aberrations (heavy)" },
           ]
         }]
       },
       {
         name: "Vorazun", faction: "Protoss", portrait: "portraits/vorazun.png",
         buildOrders: [{
-          name: "Cloaked Harassment",
+          name: "Dark Templar / Corsair",
           steps: [
-            { time: "0:00", action: "Probe — constant production" },
-            { time: "0:14", action: "Pylon" },
-            { time: "0:42", action: "Gateway" },
-            { time: "1:00", action: "Assimilator × 2" },
-            { time: "1:15", action: "Cybernetics Core" },
-            { time: "1:40", action: "Dark Shrine" },
-            { time: "2:00", action: "Stalker × 1 for escort" },
-            { time: "2:30", action: "Dark Templar production begins" },
-            { time: "2:50", action: "Time Stop — save for key moments" },
+            { time: "0:00",  action: "Dark Pylon (top bar) — instant power field + 10 supply; place at natural" },
+            { time: "0:03",  action: "Probe (Chrono Boost Nexus)" },
+            { time: "@13",   action: "Dark Pylon supply structure placed" },
+            { time: "@15",   action: "Assimilator" },
+            { time: "@16",   action: "2nd Assimilator" },
+            { time: "@18",   action: "Gateway" },
+            { time: "@19",   action: "Pylon" },
+            { time: "@22",   action: "Change Gateway rally to expansion" },
+            { time: "@23",   action: "Cybernetics Core" },
+            { time: "@27",   action: "Shadow Guard calldown (top bar) — use to destroy expansion rocks" },
+            { time: "@27",   action: "Gas workers → 3 per Assimilator" },
+            { time: "@28",   action: "Twilight Council + Warp Gate research" },
+            { time: "@29",   action: "2nd Assimilators × 2 at expansion + Nexus expansion" },
+            { time: "—",     action: "Dark Shrine → Dark Templar (permanent cloak, kills workers)" },
+            { time: "—",     action: "Blink research for Stalkers (Twilight Council)" },
+            { time: "—",     action: "Stargate → Corsairs — deal massive splash vs air, Disruption Web" },
+            { time: "—",     action: "Time Stop (top bar) — freeze all enemies, deal free damage" },
+            { time: "—",     action: "Army: Dark Templars + Stalkers + Corsairs; cloaked — no detectors = free kills" },
           ]
         }]
       },
       {
         name: "Abathur", faction: "Zerg", portrait: "portraits/abathur.png",
         buildOrders: [{
-          name: "Symbiote + Swarm",
+          name: "Roach → Brutalisk / Mutalisk",
           steps: [
-            { time: "0:00", action: "Drone — constant production" },
-            { time: "0:12", action: "Overlord" },
-            { time: "0:22", action: "Spawning Pool" },
-            { time: "0:42", action: "Extractor × 2" },
-            { time: "0:50", action: "Symbiote on ally's strongest unit — do this immediately" },
-            { time: "1:05", action: "Queen + Roach Warren" },
-            { time: "1:40", action: "Roaches begin" },
-            { time: "2:00", action: "Evolution Chamber" },
-            { time: "2:30", action: "Swarm Hosts for Locusts" },
+            { time: "0:00",  action: "Toxic Nests near enemy camps — lure units in to collect Biomass fast" },
+            { time: "0:03",  action: "Drone (Chrono Boost Hatchery)" },
+            { time: "0:28",  action: "Overlord (@14)" },
+            { time: "0:55",  action: "Drone × 5" },
+            { time: "1:20",  action: "Roach Warren (@20)" },
+            { time: "1:54",  action: "Spine Crawler (@19) — build at natural rocks" },
+            { time: "2:00",  action: "Spine Crawler (@18) — 2nd crawler for defense" },
+            { time: "2:12",  action: "Extractor × 2 (@17)" },
+            { time: "2:26",  action: "Overlord (@20)" },
+            { time: "3:00",  action: "Evolution Chamber (@23)" },
+            { time: "3:23",  action: "Hatchery expansion (@22)" },
+            { time: "3:29",  action: "First Roach" },
+            { time: "3:40",  action: "Lair (@23) — required for Hive and advanced units" },
+            { time: "4:29",  action: "Infestation Pit (@29)" },
+            { time: "4:58",  action: "Hive (@30) — unlocks Brutalisk production" },
+            { time: "4:59",  action: "Extractor × 2 more (@30)" },
+            { time: "5:35",  action: "Brutalisk — dump 100 Biomass immediately to power it up" },
+            { time: "5:46",  action: "Spire (@35) — enables Mutalisks" },
+            { time: "6:34",  action: "Sundering Glave (Mutalisk bounce upgrade)" },
+            { time: "—",     action: "Biomass: 2×supply of killed unit — focus on Hybrids (12) and big units" },
+            { time: "—",     action: "1 Brutalisk = 100 biomass; 1 Leviathan = 200 biomass" },
+            { time: "—",     action: "Symbiote: attach to ally hero for bonus stats and abilities" },
+            { time: "—",     action: "Army: Roaches (early tank) → Brutalisks + Mutalisks (late game)" },
           ]
         }]
       },
       {
         name: "Alarak", faction: "Protoss", portrait: "portraits/alarak.png",
         buildOrders: [{
-          name: "Ascendant Push",
+          name: "Ascendant / Slayer",
           steps: [
-            { time: "0:00", action: "Probe — constant production" },
-            { time: "0:14", action: "Pylon" },
-            { time: "0:42", action: "Gateway × 2" },
-            { time: "1:00", action: "Assimilator × 2" },
-            { time: "1:15", action: "Cybernetics Core" },
-            { time: "1:40", action: "Twilight Council" },
-            { time: "2:00", action: "Supplicants — sacrifice to charge Alarak" },
-            { time: "2:15", action: "Ascendant production" },
-            { time: "2:45", action: "Slayer production" },
+            { time: "0:02",  action: "Probe (Chrono Boost)" },
+            { time: "0:35",  action: "Pylon (@14)" },
+            { time: "1:01",  action: "Gateway (@15)" },
+            { time: "1:54",  action: "Nexus expansion (@19) — use Pylon Overcharge on natural to hold" },
+            { time: "2:04",  action: "Assimilator (@19)" },
+            { time: "2:11",  action: "2nd Assimilator (@20)" },
+            { time: "2:25",  action: "Pylon (@21)" },
+            { time: "2:51",  action: "Cybernetics Core (@23)" },
+            { time: "3:39",  action: "Warp Gate research (@26) — Chrono Boost it" },
+            { time: "3:45",  action: "Death Council (@27) — produces Supplicants" },
+            { time: "4:03",  action: "Assimilator × 2 at expansion (@30)" },
+            { time: "4:38",  action: "Ascendant Archives (@33) — enables Ascendants" },
+            { time: "5:09",  action: "Power Overwhelming upgrade (@37) — Ascendants consume Supplicants for power" },
+            { time: "5:52",  action: "Pylons × 2 supply (@45)" },
+            { time: "6:02",  action: "First Ascendant (@46) — charge to 3x Supplicant sacrifices immediately" },
+            { time: "6:32",  action: "Gateway × 2 more — Supplicant production" },
+            { time: "6:38",  action: "Chaotic Attunement + Cloaking Module upgrades" },
+            { time: "6:48",  action: "Gateway × 3 more (6+ total for Supplicant economy)" },
+            { time: "7:14",  action: "Forge — Protoss Ground Weapons upgrades" },
+            { time: "7:35",  action: "Ascendant × 2 more" },
+            { time: "8:10",  action: "Supplicant × 8 — feed to Ascendants" },
+            { time: "8:41",  action: "Ascendant × 6 — main army backbone" },
+            { time: "—",     action: "Alarak hero: Destruction Wave pushes enemies; use to protect Ascendants" },
+            { time: "—",     action: "Supplicants: sacrifice 3 to fully charge 1 Ascendant" },
+            { time: "—",     action: "Wrath Walkers for objective destruction; Slayers if non-Ascendant build" },
           ]
         }]
       },
       {
         name: "Nova", faction: "Terran", portrait: "portraits/nova.png",
         buildOrders: [{
-          name: "Covert Ops",
+          name: "Elite Squad (100 supply cap)",
           steps: [
-            { time: "0:00", action: "SCV — constant production" },
-            { time: "0:17", action: "Supply Depot" },
-            { time: "0:40", action: "Barracks + Refinery × 2" },
-            { time: "1:15", action: "Ghost Academy" },
-            { time: "1:30", action: "Factory" },
-            { time: "1:50", action: "Nova: personal Nuke ability ready — use freely" },
-            { time: "2:05", action: "Marines begin from Barracks" },
-            { time: "2:20", action: "Tech Lab on Barracks" },
-            { time: "2:45", action: "Goliaths from Factory" },
+            { time: "0:03",  action: "SCV (continuous production)" },
+            { time: "1:11",  action: "Command Center expansion (@16) — land near rocks" },
+            { time: "1:28",  action: "Refinery (@17)" },
+            { time: "1:43",  action: "2nd Refinery (@18)" },
+            { time: "2:14",  action: "Barracks (@19) — only 1 allowed; + SCV" },
+            { time: "3:15",  action: "SCV production continues to saturation" },
+            { time: "3:22",  action: "Elite Marines → clear rocks (@22)" },
+            { time: "3:31",  action: "Barracks Tech Lab — upgrades + Ghost/Spec Ops" },
+            { time: "3:56",  action: "3rd Refinery (@30)" },
+            { time: "4:17",  action: "Factory (@32) — only 1 allowed" },
+            { time: "4:29",  action: "4th Refinery (@33)" },
+            { time: "5:01",  action: "Engineering Bay — Weapons Lvl 1" },
+            { time: "5:37",  action: "Factory Tech Lab" },
+            { time: "5:42",  action: "Starport (@41) — only 1 allowed" },
+            { time: "5:45",  action: "Armory — enables vehicle weapon upgrades" },
+            { time: "5:47",  action: "Super Stimpack research (Barracks Tech Lab)" },
+            { time: "5:55",  action: "Infantry Weapons Lvl 1" },
+            { time: "6:15",  action: "Spider Mines (Factory Tech Lab)" },
+            { time: "6:19",  action: "Ghost Visor + Laser Targeting System" },
+            { time: "6:52",  action: "Heavy Siege Tank + Vehicle Weapons Lvl 1" },
+            { time: "7:00",  action: "Starport Tech Lab" },
+            { time: "7:04",  action: "Caduceus Reactor (Medic energy)" },
+            { time: "7:41",  action: "Griffin Airstrike calldown upgrade" },
+            { time: "8:40",  action: "Spec Ops Ghost" },
+            { time: "9:15",  action: "Raven Type-II" },
+            { time: "—",     action: "100 supply cap — quality > quantity; every unit is elite" },
+            { time: "—",     action: "Nova hero: Snipe, Cloak, Tactical Nuke — use on Heroic targets" },
+            { time: "—",     action: "Army: Elite Marines + Siege Tanks + Ghosts + Ravens + Medics" },
           ]
         }]
       },
       {
         name: "Stukov", faction: "Terran", portrait: "portraits/stukov.png",
         buildOrders: [{
-          name: "Infested Flood",
+          name: "Infested Flood (Zerg supply)",
           steps: [
-            { time: "0:00", action: "SCV — constant production" },
-            { time: "0:17", action: "Supply Depot" },
-            { time: "0:40", action: "Barracks" },
-            { time: "1:00", action: "Refinery × 2" },
-            { time: "1:15", action: "Infested Barracks (upgrade CC building)" },
-            { time: "1:30", action: "Infested Bunkers — place near enemy choke" },
-            { time: "1:50", action: "Factory → Infested Factory" },
-            { time: "2:15", action: "Infested Marines flood" },
-            { time: "2:45", action: "Infested Siege Tanks" },
+            { time: "0:00",  action: "Infested Colonist Compound — spawns Infested Civilians every 60s" },
+            { time: "0:03",  action: "Infested SCV production (continuous)" },
+            { time: "0:19",  action: "Infested Colonist Compound (@13) — build 2nd for double eggs" },
+            { time: "0:32",  action: "Overlord (@15) — Stukov uses Zerg Overlords for supply" },
+            { time: "0:40",  action: "Infested Refinery (@15)" },
+            { time: "1:03",  action: "Infested Barracks (@15) — Infestation Lvl 1 (16 eggs per wave)" },
+            { time: "1:47",  action: "Infested Command Center at expansion rocks (@19)" },
+            { time: "2:06",  action: "2nd Infested Refinery (@21)" },
+            { time: "2:13",  action: "Anaerobic Enhancement — Civilians leap at nearby enemies" },
+            { time: "2:34",  action: "Infested Engineering Bay (@22) — Infestation Lvl 2 (32 eggs per wave)" },
+            { time: "2:41",  action: "Overlord (@22)" },
+            { time: "3:16",  action: "Broodling Gestation — Civilians spawn Broodling on death" },
+            { time: "3:33",  action: "Infested Barracks (@25) — scale trooper production" },
+            { time: "4:20",  action: "Infestation Lvl 1 upgrade (@29)" },
+            { time: "4:35",  action: "Overlord × 2 + Anaerobic Enhancement (@34)" },
+            { time: "4:46",  action: "Engineering Bay — attack/armor upgrades" },
+            { time: "5:07",  action: "Infested Bunker × 1 — spawns free Infested Trooper every 24s" },
+            { time: "5:22",  action: "Infested Bunker × 2 more — can uproot and walk as units" },
+            { time: "5:44",  action: "Infestation Lvl 2 upgrade" },
+            { time: "—",     action: "Infested Bunker: rooted = spawn troopers (30s lifespan); uprooted = mobile melee" },
+            { time: "—",     action: "Infestation Lvl 3 = 64 eggs per wave (requires Infested Armory)" },
+            { time: "—",     action: "Psi Emitter (top bar) — direct civilian waves to objectives" },
+            { time: "—",     action: "Late game: Infested Diamondbacks + dump minerals into Bunkers" },
           ]
         }]
       },
@@ -389,32 +547,55 @@
         buildOrders: [{
           name: "Primal Pack",
           steps: [
-            { time: "0:00", action: "Drone — constant production" },
-            { time: "0:12", action: "Overlord" },
-            { time: "0:22", action: "Spawning Pool" },
-            { time: "0:42", action: "Extractor × 2" },
-            { time: "1:00", action: "Queen" },
-            { time: "1:20", action: "Dehaka: push early, collect essence from kills" },
-            { time: "1:30", action: "Roach Warren" },
-            { time: "2:00", action: "Roach production" },
-            { time: "2:30", action: "Primal Wurm — use for fast repositioning" },
+            { time: "0:06",  action: "Primal Drone (continuous; starts at 18 supply)" },
+            { time: "0:40",  action: "Extractor (@23)" },
+            { time: "1:03",  action: "Primal Warden (@23) — production building for pack units" },
+            { time: "1:20",  action: "Primal Drone × 2 (@24)" },
+            { time: "1:20",  action: "2nd Extractor (@26)" },
+            { time: "2:10",  action: "Primal Zergling × 2 (@28) — clear rocks with Dehaka" },
+            { time: "2:11",  action: "Glevig's Den (@28) — produces Primal Zerglings" },
+            { time: "3:33",  action: "Primal Drone (continue worker production) (@29)" },
+            { time: "3:56",  action: "Murvar's Den (@33) — produces Primal Roaches" },
+            { time: "4:02",  action: "Primal Hive (@37) — enables advanced units and upgrades" },
+            { time: "5:13",  action: "Primal Warden × 1 more (@43)" },
+            { time: "5:37",  action: "Primal Warden × 3 more (@44)" },
+            { time: "5:42",  action: "Extractor × 2 more (@47)" },
+            { time: "6:07",  action: "Dakrun's Den (@50) — Primal Hydralisks" },
+            { time: "7:44",  action: "Primal Carapace & Primal Attacks Lvl 1" },
+            { time: "7:49",  action: "Slicing Glaive (Hydralisk range upgrade)" },
+            { time: "8:39",  action: "Primal Hydralisks × 9" },
+            { time: "8:49",  action: "Shifting Carapace (evasion upgrade)" },
+            { time: "—",     action: "Dehaka hero: Devour enemy units for Essence (critters=1, standard units=2×supply, Hybrids=12)" },
+            { time: "—",     action: "Essence priority: Psionic units for splash + cooldown reduction on Devour" },
+            { time: "—",     action: "Dehaka Calldowns: pack leaders — use Murvar/Glevig/Dakrun to soak damage" },
+            { time: "—",     action: "Late game: transition to Primal Mutalisks via Candrask's Den" },
           ]
         }]
       },
       {
         name: "Han & Horner", faction: "Terran", portrait: "portraits/han_horner.png",
         buildOrders: [{
-          name: "Mech + Air",
+          name: "Reaper + Air Fleet",
           steps: [
-            { time: "0:00", action: "SCV — constant production" },
-            { time: "0:17", action: "Supply Depot" },
-            { time: "0:40", action: "Barracks (for Reactor)" },
-            { time: "1:00", action: "Refinery × 2" },
-            { time: "1:15", action: "Factory" },
-            { time: "1:30", action: "Reactor on Barracks → lift and place Starport" },
-            { time: "1:50", action: "Orbital Command" },
-            { time: "2:10", action: "Vikings begin (Starport + Reactor)" },
-            { time: "2:35", action: "Hercules / Herc from Factory" },
+            { time: "0:03",  action: "SCV (continuous production)" },
+            { time: "@14",   action: "Supply Depot" },
+            { time: "@17",   action: "Command Center expansion — land near rocks" },
+            { time: "@18",   action: "Assault Galleon (Han's production building for Reapers/Hellions/Mines)" },
+            { time: "@19",   action: "Refinery" },
+            { time: "@20",   action: "2nd Refinery" },
+            { time: "@20",   action: "Hellion × 2 → rocks (Hellion death effect: 25% move/attack speed buff to allies)" },
+            { time: "@23",   action: "Outlaw Weapons Lvl 1 — upgrade immediately" },
+            { time: "@27",   action: "Gunslingers Hideout (2nd production structure for air units)" },
+            { time: "@29",   action: "Salvage turrets after rocks cleared; add more SCVs" },
+            { time: "@30",   action: "First Outlaw (Crooked Sam or Rattlesnake for mission type)" },
+            { time: "@41",   action: "2nd Engineering Bay" },
+            { time: "@45",   action: "2nd expansion Refineries × 2" },
+            { time: "—",     action: "Reapers: high structure DPS, jet pack over terrain — great for objectives" },
+            { time: "—",     action: "Asteria Wraith: Trigger Override gives +10% attack speed per hit (up to 100%)" },
+            { time: "—",     action: "Theia Raven × 3-4: Analyze Weakness multiplies all damage vs target" },
+            { time: "—",     action: "Death effects: Reaper = cluster grenades; Hellion = movement/attack speed" },
+            { time: "—",     action: "Mag Mines calldown: place on spawn paths to destroy waves (5 charges, 50s CD)" },
+            { time: "—",     action: "Avoid going pure Horner air — Horner units can't sustain prolonged combat alone" },
           ]
         }]
       },
@@ -423,49 +604,72 @@
         buildOrders: [{
           name: "Outlaw Squad",
           steps: [
-            { time: "0:00", action: "SCV — constant production" },
-            { time: "0:17", action: "Supply Depot" },
-            { time: "0:40", action: "Barracks + Refinery × 2" },
-            { time: "1:10", action: "Recruit 2nd Outlaw — Sirius or Vega recommended" },
-            { time: "1:30", action: "Cantina (Tychus healing + abilities)" },
-            { time: "1:50", action: "Orbital Command" },
-            { time: "2:00", action: "Recruit 3rd Outlaw" },
-            { time: "2:25", action: "Engage first objective — Outlaws are strong early" },
-            { time: "2:50", action: "Odin call-down if researched" },
+            { time: "0:03",  action: "SCV (continuous production)" },
+            { time: "@17",   action: "Command Center expansion — land next to rocks" },
+            { time: "@18",   action: "Refinery" },
+            { time: "@19",   action: "2nd Refinery" },
+            { time: "@20",   action: "Engineering Bay — start Outlaw Weapons Lvl 1 immediately" },
+            { time: "@22",   action: "Auto-Turrets × 2 near rocks — use Tychus to help clear" },
+            { time: "—",     action: "Outlaw 1 (800 min): Rattlesnake — healer, places Revitalizers" },
+            { time: "—",     action: "Outlaw 2: Sirius — anti-air turrets, detection" },
+            { time: "—",     action: "Outlaw 3: Crooked Sam — burst vs Heroic targets, Demolition Charges" },
+            { time: "—",     action: "Outlaw 4+: Blaze (infested maps), Cannonball (tank), Lt. Nikara (healer)" },
+            { time: "—",     action: "3 Engineering Bays recommended: 2 for Weapons+Armor Lvl 1-3, 1 for specials" },
+            { time: "—",     action: "Medivac Pickup: relocate Outlaws instantly — keep them alive at all costs" },
+            { time: "—",     action: "Odin calldown revives Tychus at no mineral cost — always use to save him" },
+            { time: "—",     action: "Outlaws keep buffs/levels on revive; never let them die permanently" },
           ]
         }]
       },
       {
         name: "Zeratul", faction: "Protoss", portrait: "portraits/zeratul.jpg",
         buildOrders: [{
-          name: "Artifact Hunt",
+          name: "Artifact Hunt (Top Bar Fast Expand)",
           steps: [
-            { time: "0:00", action: "Probe — constant production" },
-            { time: "0:14", action: "Pylon" },
-            { time: "0:42", action: "Gateway" },
-            { time: "1:00", action: "Assimilator × 2" },
-            { time: "1:15", action: "Cybernetics Core" },
-            { time: "1:30", action: "Scout map — locate nearest artifact fragment" },
-            { time: "1:45", action: "Warp Gate research" },
-            { time: "2:00", action: "Phase Smith: activate Spear of Adun ability" },
-            { time: "2:20", action: "Stalkers × 2 (first warp-in) + collect fragment" },
+            { time: "0:04",  action: "Probe (Chrono Boost Nexus continuously)" },
+            { time: "1:10",  action: "Zoraya Legion calldown (800 min) → send to destroy natural rocks (@17)" },
+            { time: "1:49",  action: "Ancient Nexus expansion (@17)" },
+            { time: "1:55",  action: "Probe production continues" },
+            { time: "2:10",  action: "Xel'Naga Passageway — produces Ambushers + Shieldguards (cloaked)" },
+            { time: "3:16",  action: "Core Forge (@21) — enables unit upgrades and Tesseract Monolith" },
+            { time: "3:21",  action: "2nd Zoraya Legion — defend base or assist partner" },
+            { time: "3:57",  action: "2nd Xel'Naga Passageway — more unit production (@23)" },
+            { time: "—",     action: "Constructs Facility — produces Enforcers (anti-air) and Abrogators" },
+            { time: "—",     action: "Artifact Fragments: spawn ~every 5 min from game start; find them FIRST" },
+            { time: "—",     action: "Each fragment: +50 shields, +10 Shadow Cleave dmg, +1 Blink charge to units" },
+            { time: "—",     action: "Fragment 3: enables Avatar calldowns + empowered Legion abilities" },
+            { time: "—",     action: "Legions (800 min each, 120s CD): Zoraya=Void Rays, Telbrus=Zealots, Serdath=Dark Archons" },
+            { time: "—",     action: "Ancient Assimilators auto-built by Ancient Nexus — no workers needed on gas" },
+            { time: "—",     action: "Tesseract Cannons: mineral dump once supply-capped; project as Shade anywhere" },
+            { time: "—",     action: "Army: Ambushers (anti-air blink) + Shieldguards (shield restore) + Enforcers" },
           ]
         }]
       },
       {
         name: "Mengsk", faction: "Terran", portrait: "portraits/mengsk.png",
         buildOrders: [{
-          name: "Imperial Guard",
+          name: "Imperial Guard (no Orbital Command)",
           steps: [
-            { time: "0:00", action: "SCV — constant production" },
-            { time: "0:17", action: "Supply Depot" },
-            { time: "0:40", action: "Barracks → Tech Lab" },
-            { time: "1:00", action: "Refinery × 2" },
-            { time: "1:20", action: "Orbital Command" },
-            { time: "1:35", action: "Dominion Troopers + Medics begin" },
-            { time: "1:50", action: "Emperor's Shadow — call down Mengsk hero" },
-            { time: "2:15", action: "Factory + 2nd Barracks" },
-            { time: "2:45", action: "Imperial Mandate abilities — Inspire, Pulsar Rounds" },
+            { time: "@13",   action: "Forced Conscription calldown (25 Mandate) — Supply Bunker + 6 Troopers at expansion" },
+            { time: "—",     action: "Keep 16 Laborers mining minerals at main base" },
+            { time: "@24",   action: "2nd Bunker calldown — begins generating Mandate" },
+            { time: "@25",   action: "Unload expansion Bunker + destroy rocks" },
+            { time: "@28",   action: "Move 4 Laborers to expansion" },
+            { time: "@30",   action: "Enlistment Center at expansion (Trooper production building)" },
+            { time: "@32",   action: "Convert spare Troopers → Laborers for fast base saturation" },
+            { time: "@38",   action: "Refineries × 3 (3 SCVs each)" },
+            { time: "@39",   action: "4th Refinery" },
+            { time: "@45",   action: "Barracks (8 Laborers assigned)" },
+            { time: "@50",   action: "Factory" },
+            { time: "@53",   action: "Starport" },
+            { time: "@56",   action: "Imperial Witness — indoctrinates Conscripts, generates extra Mandate" },
+            { time: "@40",   action: "Fusion Core (for Raid Artillery / Earthsplitter calldown)" },
+            { time: "—",     action: "No Orbital Command — Supply Bunkers provide supply + Trooper spawning" },
+            { time: "—",     action: "Mandate = generated from base 40 + Royal Guard supply + Conscripts under Witness" },
+            { time: "—",     action: "Amplified Airwaves upgrade: Conscripts under Witness give 2 support (vs 1) each" },
+            { time: "—",     action: "Royal Guard: Dominion Trooper, Aegis Guard, Siege Tank, Vulture, Viking, BC" },
+            { time: "—",     action: "Earthsplitter Artillery: load Troopers to increase volleys; stack 2-3 for coverage" },
+            { time: "—",     action: "Patriot Missiles calldown: deploys over mineral line, kills air attackers" },
           ]
         }]
       },
@@ -572,6 +776,8 @@
           elPortraitSlot.classList.remove("spinning");
           render(commanders[finalIndex]);
           elPortraitSlot.classList.add("lock-in");
+          document.getElementById("app").classList.add("has-result");
+          document.body.classList.add("has-result");
           elBtn.disabled = false;
           // Build order fades in after the lock-in flash settles
           setTimeout(() => showBuildOrder(commanders[finalIndex]), 500);
